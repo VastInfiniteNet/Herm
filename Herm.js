@@ -1,3 +1,5 @@
+
+/** Object structure for the param of the @see Herm.#TerritoryChangeEvent event */
 class TerritoryChange {
    NewTerritory
    OldTerritory
@@ -19,11 +21,6 @@ class Herm {
          Chat.log("Herm: " + `${msg}`)
    }
 
-   /**
-    * 
-    * @param {*} fileName 
-    * @returns 
-    */
    #SetupTerritory(fileName) { // TODO: support multiple claims maps
       this.#Log(`Reading in ${fileName}`)
       if (!FS.exists(fileName)) { // TODO: download claims map if one doesn't exist
@@ -45,7 +42,7 @@ class Herm {
    }
 
    /**
-    * 
+    * sets up main TerritoryChangeEvent event
     */
    #CreateEvents() {
       let territoryChangeEvent = JsMacros.createCustomEvent(`TerritoryChangeEvent`);
@@ -54,13 +51,23 @@ class Herm {
       this.#Log("TerritoryChangeEvent Ready")
    }
 
+   /**
+    * trigger TerritoryChangeEvent event with parameters
+    * @param {*} oldTerritory Territory player moved out of
+    * @param {*} newTerritory Territory player moved into
+    */
    #SendTerritoryChangeEvent(oldTerritory, newTerritory) {
       this.#Log(`TerritoryChangeEvent: ${oldTerritory?.name}, ${oldTerritory?.nation} -> ${newTerritory?.name}, ${newTerritory?.nation}`)
       this.#TerritoryChangeEvent.putObject("TerritoryChange", { NewTerritory: newTerritory, OldTerritory: oldTerritory })
       this.#TerritoryChangeEvent.trigger()
    }
 
-   Check() {
+   /**
+    * Check what territory the players is in and 
+    * sends update if changed from last check
+    * @returns true if a plyaer is in a known territory
+    */
+   Check() { // 
       var isPresent;
 
       for (let feature of this.TerritoryFeatures) { // check if player is in any feature
@@ -88,7 +95,6 @@ class Herm {
 
       if (!isPresent && this.#CurrentTerritory != undefined) { // player left any known territory
          this.#SendTerritoryChangeEvent(this.#CurrentTerritory, undefined)
-
          this.#CurrentTerritory = undefined;
       }
       return false;
@@ -177,13 +183,13 @@ function startHerm() {
    let listeners = [];
    let tickListenerInterval = TERRITORY_POLLING_INTERVAL * 20;
 
-   if (tickListenerInterval != 0) {
+   if (tickListenerInterval != 0) { // timer based territory check
       listeners.push(JsMacros.on('Tick', JavaWrapper.methodToJava(() => {
          if (World.getTime() % tickListenerInterval == 0)
             Herma.Check();
       })))
    }
-   if (TERRITORY_HOTKEY !== undefined) {
+   if (TERRITORY_HOTKEY !== undefined) { // enable manual territory check via hotkey
       listeners.push(JsMacros.on('Key', JavaWrapper.methodToJava((keyEvent) => {
          if (keyEvent.key == TERRITORY_HOTKEY && keyEvent.action) {
             if (TERRITORY_DEBUG_MODE)
@@ -194,7 +200,7 @@ function startHerm() {
    }
 
 
-   event.stopListener = JavaWrapper.methodToJava(() => {
+   event.stopListener = JavaWrapper.methodToJava(() => { // clean up service 
       listeners.forEach(listener => JsMacros.off(listener));
       Chat.log("HermActiva disabled");
       GlobalVars.remove("HermActive");

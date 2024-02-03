@@ -35,6 +35,10 @@ class TerritoryAlerter {
       World.playSound(TERRITORY_CHANGE_SOUND, 0.1, 100)
    }
 
+   /**
+    * Displays a change in territory via several possible methods:
+    * title, toast, log, or actionbar
+    */
    #DisplayLocationChange(message, subtitle) {
       if ((TERRITORY_CHANGE_DISPLAY_OPTION & TERRITORY_CHANGE_DISPLAY_OPTIONS.TITLE) != 0)
          Chat.title(message, subtitle, 10, 35, 10);
@@ -46,6 +50,9 @@ class TerritoryAlerter {
          Chat.actionbar(subtitle);
    }
 
+   /**
+    * Creates a MInecraft colored text string
+    */
    #Colorize(name, colorString) {
       if (colorString === undefined)
          return Chat.createTextBuilder().append(Chat.createTextHelperFromString(name));
